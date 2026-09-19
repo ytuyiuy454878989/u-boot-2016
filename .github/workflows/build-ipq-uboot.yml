@@ -155,47 +155,21 @@ jobs:
           echo "Final artifact list:"
           ls -la
 
-      - name: Check and delete all published content on Releases page
-        run: |
-          echo "Check Releases page today (${{ env.TODAY }}) for branch: ${{ env.BRANCH_NAME }}"
-          echo "Current time: $(date '+%Y-%m-%d %H:%M:%S %Z')"
 
-          # View all releases for debugging
-          echo "All Releases list:"
-          gh release list --limit 10
 
-          # Match by tag name directly (tag format: branch/vYYYY-MM-DD)
-          # This avoids timezone mismatch between Shanghai date and GitHub UTC createdAt
-          TAG_PREFIX="${{ env.BRANCH_NAME }}/v${{ env.TODAY }}"
-          echo "Looking for tag prefix: $TAG_PREFIX"
-
-          RELEASE_JSON=$(gh release list --limit 100 --json tagName)
-          TODAY_TAGS=$(echo "$RELEASE_JSON" | jq -r --arg prefix "$TAG_PREFIX" '.[] | select(.tagName | startswith($prefix)) | .tagName')
-          echo "Matching tags: $TODAY_TAGS"
-
-          if [ -n "$TODAY_TAGS" ]; then
-            echo "Found published Releases today, deleting all..."
-            echo "$TODAY_TAGS"
-            echo "$TODAY_TAGS" | xargs -I {} gh release delete {} --yes --cleanup-tag
-            echo "All today's Releases deleted completed!"
-          else
-            echo "Releases page today is empty"
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create new GitHub Release
-        uses: softprops/action-gh-release@v3.0.1
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v7.0.1
         with:
-          tag_name: ${{ env.BRANCH_NAME }}/v${{ env.TODAY }}
-          name: ${{ env.BRANCH_NAME }}/v${{ env.TODAY }}
-          body: |
-            Branch：`${{ env.BRANCH_NAME }}`
-            Commit：`${{ env.SHORT_SHA }}`
-            Build Time：${{ env.FULL_BUILD_TIME }} ${{ env.TZ }}
-            Types：ipq40xx、ipq5018、ipq5332、ipq6018、ipq806x、ipq807x、ipq9574
-          files: artifacts/*
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: uboot-${{ env.RELEASE_VERSION }}
+          path: |
+            ./bin/${{ env.RELEASE_VERSION }}/
+            !./bin/${{ env.RELEASE_VERSION }}/uboot-all-*.zip
+
+      - name: 发布到 GitHub Release
+        if: env.CREATE_RELEASE == 'true'
+        uses: softprops/action-gh-release@v3.0.2
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          files: ./bin/${{ env.RELEASE_VERSION }}/*
+          body_path: ./bin/${{ env.RELEASE_VERSION }}/release-${{ env.RELEASE_VERSION }}.md
+          prerelease: ${{ env.PRERELEASE == 'true' }}
