@@ -1,5 +1,7 @@
 name: Build U-Boot for IPQ Devices
-
+permissions:
+  contents: write # 关键，允许创建release、tag相关写操作
+  actions: write
 on:
   push:
   # pull_request:
