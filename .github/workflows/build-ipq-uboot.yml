@@ -1,4 +1,4 @@
-name: Build U-Boot for IPQ Devices
+name: 建并发布for IPQ Devices
 permissions:
   contents: write # 关键，允许创建release、tag相关写操作
   actions: write
