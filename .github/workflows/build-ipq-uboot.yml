@@ -156,6 +156,11 @@ jobs:
           ls -la
 
 
+      - name: 开始编译
+        run: |
+          source ./build.sh build $BUILD_TARGET
+
+          echo "RELEASE_VERSION=$_RELEASE_VERSION_" >> $GITHUB_ENV
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v7.0.1
