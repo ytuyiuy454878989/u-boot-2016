@@ -162,14 +162,14 @@ jobs:
 
           # View all releases for debugging
           echo "All Releases list:"
-          gh release list --limit 10
+          gh release list --limit 10000
 
           # Match by tag name directly (tag format: branch/vYYYY-MM-DD)
           # This avoids timezone mismatch between Shanghai date and GitHub UTC createdAt
           TAG_PREFIX="${{ env.BRANCH_NAME }}/v${{ env.TODAY }}"
           echo "Looking for tag prefix: $TAG_PREFIX"
 
-          RELEASE_JSON=$(gh release list --limit 100 --json tagName)
+          RELEASE_JSON=$(gh release list --limit 10000 --json tagName)
           TODAY_TAGS=$(echo "$RELEASE_JSON" | jq -r --arg prefix "$TAG_PREFIX" '.[] | select(.tagName | startswith($prefix)) | .tagName')
           echo "Matching tags: $TODAY_TAGS"
 
